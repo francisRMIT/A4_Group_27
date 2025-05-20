@@ -2,9 +2,18 @@ public class Main {
     public static void main(String[] args) {
         // Just run main to check if the function works for now
         Person p1 = new Person();
-        p1.setDetails("56s_ad&fAB", "John", "Doe", "32|Highland Street|Melbourne|Victoria|Australia", "27-02-2025");
 
+        // Example details, unchanged this should pass all tests
+        p1.setDetails("56s_ad&fAB", "John", "Doe",
+                "32|Highland Street|Melbourne|Victoria|Australia", "27-02-2005");
+
+        // Example of running addPerson for p1
         boolean condition = p1.addPerson();
-        System.out.print(condition);
+        System.out.println(condition);
+
+        // Example of running updatePersonalDetails for p1
+        condition = p1.updatePersonalDetails("56s_ad&fAB", "John", "Doe",
+                "32|Highland Street|Melbourne|Victoria|Australia", "27-02-2025");
+        System.out.println(condition);
     }
 }

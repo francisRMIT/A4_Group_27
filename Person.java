@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Period;
 
 public class Person {
     public String personID;
@@ -12,6 +13,7 @@ public class Person {
     private String lastName;
     private String address;
     private String birthdate;
+    private LocalDate parsedBirthday;
     // Assignment says to use date, but i think it would be better to use
     // localdate
     private HashMap<Date, Integer> demeritPoints;
@@ -47,7 +49,7 @@ public class Person {
             }
         }
 
-        // Checks that there is at least 2 special characte
+        // Checks that there is at least 2 special characters
         if (count < 2) {
             return false;
         }
@@ -75,11 +77,49 @@ public class Person {
 
         // Condition 3.0: Parses birthdate and checks if it follows the pattern
         try {
-            LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            parsedBirthday = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         } catch (DateTimeParseException e) {
             return false;
         }
+        // Writes details if true
+        writeDetails();
 
+        // Returns true if all conditions are met
+        return true;
+    }
+
+    public boolean updatePersonalDetails(String newID, String newFirst, String newLast, String newAddress,
+            String newBirthday) {
+
+        // Condition 1: Changing address
+        try {
+            // Gets the period betweem
+            Period period = Period.between(parsedBirthday, LocalDate.now());
+
+            // Person is under 18!
+            if (period.getYears() < 18) {
+                System.out.println("Cannot change address (Under 18)");
+            } else {
+                System.out.println("Address Changed (Over 18)");
+                // TODO: Seperate Address checking to seperate function so it can be shared
+            }
+        } catch (DateTimeParseException e) {
+            // Birthdate given is invalid
+            return false;
+        }
+
+        // Any details changed will be written here
+        // writeDetails();
+
+        return true;
+    }
+
+    public boolean addDemeritPoints() {
+        // Todo:
+        return true;
+    }
+
+    public void writeDetails() {
         // If everything passes, write down these details into a
         try {
             FileWriter addPersonFile = new FileWriter("Details.txt");
@@ -92,18 +132,5 @@ public class Person {
         } catch (IOException e) {
             System.out.println("File Error.");
         }
-
-        // Returns true if all conditions are met
-        return true;
-    }
-
-    public boolean updatePersonalDetails() {
-        // Todo:
-        return true;
-    }
-
-    public boolean addDemeritPoints() {
-        // Todo:
-        return true;
     }
 }
