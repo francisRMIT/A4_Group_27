@@ -51,16 +51,17 @@ public class Person {
 
     public boolean updatePersonalDetails(String newID, String newFirst, String newLast, String newAddress, String newBirthday) {
         // Condition 2: Changing birthdate (comes first due to its nature)
-        // Parse both both new and old birthdays and returns false of either fail
+        // Parse both both new and old birthdays and returns false if either fail
         try {
             parsedBirthday = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
             newParsedBirthday = LocalDate.parse(newBirthday, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         } catch (DateTimeParseException e) {
-            return false;
+            System.out.println("Birthdate is invalid!");
+            // return false;
         }
 
-        // If the birthdates are different, record the change
-        if (parsedBirthday != newParsedBirthday) {
+        // If the birthdates are different, record the change. If they aren't, proceeds.
+        if (parsedBirthday.isBefore(newParsedBirthday)) {
             // Record the change
             this.birthdate = newBirthday;
             writeDetails();
@@ -68,7 +69,7 @@ public class Person {
             // Returns now since only birthdate can be changed once
             return true;
         }
-
+        
         // Condition 1: Changing address
         try {
             // Gets the period between representing age
@@ -76,24 +77,34 @@ public class Person {
 
             // Checks if person is above 18
             if (age < 18) {
-                // System.out.println("Cannot change address (Under 18)");
-                return false;
+                System.out.println("Cannot change address! (Under 18)");
+                // return false;
             }
 
-            // Checks if new address is valid
+            // Checks if new address is valid and it is, updates it
             if (checkAddress(newAddress)) {
                 this.address = newAddress;
             } else {
-                return false;
+                System.out.println("Address is not in the right format!");
+                // return false;
             }
-
         // Birthdate given is invalid so return false
         } catch (DateTimeParseException e) {
-            return false;
+            System.out.println("Birthdate is invalid!");
+            // return false;
         }
 
-        // Condition 3:
+        // Condition 3: Changes ID if the ID meets the previous requirements and the first digit is even
+        if (checkAddress(newID) && Character.getNumericValue(newID.charAt(0) % 2) == 0) {
+            this.personID = newID;
+        } else {
+            System.out.println("ID is either invalid or the first digit is invalid!");
+            // return false;
+        }
 
+        // Simple changes first and last name, no checks needed
+        this.firstName = newFirst;
+        this.lastName = newLast;
 
         // Any details changed will be written here
         writeDetails();
