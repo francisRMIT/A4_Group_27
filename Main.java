@@ -8,8 +8,11 @@ public class Main {
                 "32|Highland Street|Melbourne|Victoria|Australia", "27-02-2005");
         System.out.println(condition);
 
-        // Example of running updatePersonalDetails for p1
-        condition = p1.updatePersonalDetails("56s_ad&fAB", "John", "Doe","32|Highland Street|Melbourne|Victoria|Australia", "27-02-2005");
+        // Example of running updatePersonalDetails for p1 (can only run is above is true)
+        if (condition) {
+            condition = p1.updatePersonalDetails("66s_ad&fAB", "John", "Doe","32|Highland Street|Melbourne|Victoria|Australia", "27-02-2005");
+        }
+
         System.out.println(condition);
     }
 } 

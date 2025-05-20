@@ -22,16 +22,19 @@ public class Person {
     public boolean addPerson(String ID, String first, String last, String address, String birthdate) {
         // Condition 1.0: ID checking
         if (!checkID(ID)) {
+            System.out.println("ID is invalid!");
             return false;
         }
 
         // Condition 2.0: Address checking
         if (!checkAddress(address)) {
+            System.out.println("Address is invalid!");
             return false;
         }
 
         // Condition 3.0: Birthday checking
         if (!checkBirthdate(birthdate)) {
+            System.out.println("Birthdate is invalid!");
             return false;
         }
 
@@ -57,7 +60,7 @@ public class Person {
             newParsedBirthday = LocalDate.parse(newBirthday, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         } catch (DateTimeParseException e) {
             System.out.println("Birthdate is invalid!");
-            // return false;
+            return false;
         }
 
         // If the birthdates are different, record the change. If they aren't, proceeds.
@@ -78,7 +81,7 @@ public class Person {
             // Checks if person is above 18
             if (age < 18) {
                 System.out.println("Cannot change address! (Under 18)");
-                // return false;
+                return false;
             }
 
             // Checks if new address is valid and it is, updates it
@@ -86,20 +89,21 @@ public class Person {
                 this.address = newAddress;
             } else {
                 System.out.println("Address is not in the right format!");
-                // return false;
+                return false;
             }
         // Birthdate given is invalid so return false
         } catch (DateTimeParseException e) {
             System.out.println("Birthdate is invalid!");
-            // return false;
+            return false;
         }
 
         // Condition 3: Changes ID if the ID meets the previous requirements and the first digit is even
-        if (checkAddress(newID) && Character.getNumericValue(newID.charAt(0) % 2) == 0) {
+        if (checkID(newID) && Character.getNumericValue(newID.charAt(0)) % 2 == 0) {
+            // Successfully updates personID
             this.personID = newID;
         } else {
             System.out.println("ID is either invalid or the first digit is invalid!");
-            // return false;
+            return false;
         }
 
         // Simple changes first and last name, no checks needed
@@ -112,6 +116,7 @@ public class Person {
         return true;
     }
 
+    // TODO
     public boolean addDemeritPoints() {
         // Todo:
         return true;
@@ -147,6 +152,7 @@ public class Person {
     public boolean checkID(String ID) {
         // Checks if Exactly 10 characters long
         if (ID.length() != 10) {
+            System.out.println("ID is not 10!");
             return false;
         }
 
@@ -156,6 +162,7 @@ public class Person {
             // Check if first two chars are digits
             if (i < 2 && !Character.isDigit(ID.charAt(i))) {
                 // If first two are not digits, fails
+                System.out.println("First two digits are not ints!");
                 return false;
                 // NOTE: I asked a tutor about whitespaces and he told me to assume that there
                 // will be none
@@ -167,6 +174,7 @@ public class Person {
 
         // Checks that there is at least 2 special characters
         if (count < 2) {
+            System.out.println("There are less then 2 special characters!");
             return false;
         }
 
