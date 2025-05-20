@@ -82,7 +82,7 @@ public class Person {
 
         // If everything passes, write down these details into a
         try {
-            FileWriter addPersonFile = new FileWriter("addPerson.txt");
+            FileWriter addPersonFile = new FileWriter("Details.txt");
             addPersonFile.write("ID: " + personID + "\n");
             addPersonFile.write("First Name: " + firstName + "\n");
             addPersonFile.write("Last Name: " + lastName + "\n");
