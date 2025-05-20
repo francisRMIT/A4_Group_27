@@ -22,19 +22,16 @@ public class Person {
     public boolean addPerson(String ID, String first, String last, String address, String birthdate) {
         // Condition 1.0: ID checking
         if (!checkID(ID)) {
-            System.out.println("ID is invalid!");
             return false;
         }
 
         // Condition 2.0: Address checking
         if (!checkAddress(address)) {
-            System.out.println("Address is invalid!");
             return false;
         }
 
         // Condition 3.0: Birthday checking
         if (!checkBirthdate(birthdate)) {
-            System.out.println("Birthdate is invalid!");
             return false;
         }
 
@@ -98,7 +95,7 @@ public class Person {
         }
 
         // Condition 3: Changes ID if the ID meets the previous requirements and the first digit is even
-        if (checkID(newID) && Character.getNumericValue(newID.charAt(0)) % 2 == 0) {
+        if (checkID(newID) && Character.getNumericValue(newID.charAt(0)) % 2 != 0) {
             // Successfully updates personID
             this.personID = newID;
         } else {
@@ -130,6 +127,7 @@ public class Person {
 
         // If not length 5, then it is not in the correct format
         if (addressSplit.length != 5) {
+            System.out.println("Address does not have 5 segments!");
             return false;
         }
 
@@ -137,12 +135,14 @@ public class Person {
         try {
             Integer.parseInt(addressSplit[0]);
         } catch (NumberFormatException e) {
+            System.out.println("Street number is not an int!");
             return false;
         }
 
         // If the state is not Victoria or the Country is not Australia, fails the
         // check.
         if (!addressSplit[3].equals("Victoria") || !addressSplit[4].equals("Australia")) {
+            System.out.println("State is not Victoria or Country is not Australia!");
             return false;
         }
 
@@ -152,7 +152,7 @@ public class Person {
     public boolean checkID(String ID) {
         // Checks if Exactly 10 characters long
         if (ID.length() != 10) {
-            System.out.println("ID is not 10!");
+            System.out.println("ID is not 10 characters long!");
             return false;
         }
 
@@ -186,6 +186,7 @@ public class Person {
         try {
             LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         } catch (DateTimeParseException e) {
+            System.out.println("Birthdate is in the incorrect format!");
             return false;
         }
 
