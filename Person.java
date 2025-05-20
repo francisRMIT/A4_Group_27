@@ -16,8 +16,8 @@ public class Person {
     private LocalDate parsedBirthday, newParsedBirthday;
     // Assignment says to use date, but i think it would be better to use
     // localdate
-    private HashMap<Date, Integer> demeritPoints;
-    private boolean isSuspended;
+    private HashMap<LocalDate, Integer> demeritPoints =  new HashMap<>();
+    public boolean isSuspended = false;
 
     public boolean addPerson(String ID, String first, String last, String address, String birthdate) {
         // Condition 1.0: ID checking
@@ -31,7 +31,7 @@ public class Person {
         }
 
         // Condition 3.0: Birthday checking
-        if (!checkBirthdate(birthdate)) {
+        if (!checkDate(birthdate)) {
             return false;
         }
 
@@ -113,17 +113,40 @@ public class Person {
         return true;
     }
 
-    // TODO
-    public boolean addDemeritPoints() {
-        // Todo:
-        return true;
+    public String addDemeritPoints(String offenseDate, int points) {
+        // Condition 1: Checks if format is valid
+        if (!checkDate(offenseDate)) {
+            return "Failure";
+        }
+
+        // Condition 2: Checks if points is within range
+        if ((points <= 0) && (points >= 7)) {
+            return "Failure";
+        }
+
+        // Calculate age of person
+        int age = Period.between(parsedBirthday, LocalDate.now()).getYears();
+
+        // Add the demerit to the hashmap
+        demeritPoints.put(LocalDate.parse(offenseDate, DateTimeFormatter.ofPattern("dd-MM-yyyy")), points);
+
+        // Condition 3: If person is under 21, they are suspended
+        if (age < 21) {
+            this.isSuspended = countDemerits(6);
+        } else {
+            this.isSuspended = countDemerits(12);
+        }
+
+        return "Success";
     }
 
-    // HELPERS
+    // HELPERS METHODS
     
     // Address checking function
     public boolean checkAddress(String loc) {
         String[] addressSplit = loc.split("\\|");
+
+        // System.out.print(addressSplit.length);
 
         // If not length 5, then it is not in the correct format
         if (addressSplit.length != 5) {
@@ -181,12 +204,12 @@ public class Person {
         return true;
     }
 
-    public boolean checkBirthdate(String date) {
+    public boolean checkDate(String date) {
         //Parses birthdate and checks if it follows the pattern
         try {
             LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         } catch (DateTimeParseException e) {
-            System.out.println("Birthdate is in the incorrect format!");
+            System.out.println("Date is in the incorrect format!");
             return false;
         }
 
@@ -206,5 +229,30 @@ public class Person {
         } catch (IOException e) {
             System.out.println("File Error.");
         }
+    }
+
+    public boolean countDemerits (int limit) {
+        // Adds up demerit points
+        int counter = 0;
+        LocalDate currentDate = LocalDate.now();
+
+        // For every demerit in the hashmap, check the dates
+        for (LocalDate date : demeritPoints.keySet()) {
+            // Calculates time in months since the demerit was issued
+            int timeSince = Period.between(date, currentDate).getMonths();
+
+            // If it is with 24 months, add the demerits to teh counter
+            if (timeSince <= 24) {
+                counter += demeritPoints.get(date);
+            }
+
+            // If the counter surpasses the limit, the driver is suspended
+            if (counter > limit) {
+                return true;
+            }
+        }
+
+        // If the counter does not surpass the limit, the driver is not suspended
+        return false;
     }
 }
