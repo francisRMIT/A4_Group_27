@@ -13,7 +13,7 @@ public class Person {
     private String lastName;
     private String address;
     private String birthdate;
-    private LocalDate parsedBirthday;
+    private LocalDate parsedBirthday, newParsedBirthday;
     // Assignment says to use date, but i think it would be better to use
     // localdate
     private HashMap<Date, Integer> demeritPoints;
@@ -55,7 +55,27 @@ public class Person {
         }
 
         // Condition 2.0: Address checking
-        String[] addressSplit = address.split("\\|");
+        if (!checkAddress(address)) {
+            return false;
+        }
+
+        // Condition 3.0: Parses birthdate and checks if it follows the pattern
+        try {
+            LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+
+        // Writes details if true
+        writeDetails();
+
+        // Returns true if all conditions are met
+        return true;
+    }
+
+    // Address checking function
+    public boolean checkAddress(String loc) {
+        String[] addressSplit = loc.split("\\|");
 
         // If not length 5, then it is not in the correct format
         if (addressSplit.length != 5) {
@@ -75,41 +95,54 @@ public class Person {
             return false;
         }
 
-        // Condition 3.0: Parses birthdate and checks if it follows the pattern
-        try {
-            parsedBirthday = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        } catch (DateTimeParseException e) {
-            return false;
-        }
-        // Writes details if true
-        writeDetails();
-
-        // Returns true if all conditions are met
         return true;
     }
 
-    public boolean updatePersonalDetails(String newID, String newFirst, String newLast, String newAddress,
-            String newBirthday) {
+    public boolean updatePersonalDetails(String newID, String newFirst, String newLast, String newAddress, String newBirthday) {
+        // Condition 2: Changing birthdate (comes first due to its nature)
+        // Parse both both new and old birthdays and returns false of either fail
+        try {
+            parsedBirthday = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            newParsedBirthday = LocalDate.parse(newBirthday, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+
+        // If the birthdates are different, record the change
+        if (parsedBirthday != newParsedBirthday) {
+            // Record the change
+            this.birthdate = newBirthday;
+            writeDetails();
+
+            // Returns now since only birthdate can be changed once
+            return true;
+        }
 
         // Condition 1: Changing address
         try {
             // Gets the period between them
             Period period = Period.between(parsedBirthday, LocalDate.now());
 
-            // Person is under 18!
+            // Checks if person is above 18
             if (period.getYears() < 18) {
                 System.out.println("Cannot change address (Under 18)");
-            } else {
-                System.out.println("Address Changed (Over 18)");
-                // TODO: Seperate Address checking to seperate function so it can be shared
+                return false;
             }
+
+            // Checks if new address is valid
+            if (checkAddress(newAddress)) {
+                this.address = newAddress;
+            } else {
+                return false;
+            }
+
+        // Birthdate given is invalid so return false
         } catch (DateTimeParseException e) {
-            // Birthdate given is invalid
             return false;
         }
 
         // Any details changed will be written here
-        // writeDetails();
+        writeDetails();
 
         return true;
     }
