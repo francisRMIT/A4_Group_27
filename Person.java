@@ -20,7 +20,30 @@ public class Person {
     }
 
     public boolean addPerson() {
-        // Todo: asd
+
+        // Condition 1: Exactly 10 characters long
+        if (personID.length() != 10) {
+            return false;
+        }
+
+        // Condition 1: Checking person ID contents
+        int count = 0;
+
+        for (int i = 0; i < personID.length(); ++i) {
+            // Check if first two chars are digits
+            if (i < 2 && !Character.isDigit(personID.charAt(i))) {
+                // If first two are not digits, fails
+                return false;
+            } else if (!Character.isLetterOrDigit(personID.charAt(i))) {
+                // Counts number of special characters (#$@%! etc.)
+                count += 1;
+            }
+        }
+
+        // Checks that there is at least 2 special characte
+        if (count < 2) {
+            return false;
+        }
 
         return true;
     }
