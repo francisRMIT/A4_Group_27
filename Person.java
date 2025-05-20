@@ -93,7 +93,7 @@ public class Person {
 
         // Condition 1: Changing address
         try {
-            // Gets the period betweem
+            // Gets the period between them
             Period period = Period.between(parsedBirthday, LocalDate.now());
 
             // Person is under 18!
