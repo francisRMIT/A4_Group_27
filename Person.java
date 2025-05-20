@@ -19,38 +19,9 @@ public class Person {
     private HashMap<Date, Integer> demeritPoints;
     private boolean isSuspended;
 
-    // Class to set details, can change later
-    public void setDetails(String ID, String first, String last, String address, String birthdate) {
-        this.personID = ID;
-        this.firstName = first;
-        this.lastName = last;
-        this.address = address;
-        this.birthdate = birthdate;
-    }
-
-    public boolean addPerson() {
-        // Condition 1.0: Exactly 10 characters long
-        if (personID.length() != 10) {
-            return false;
-        }
-
-        // Checking person ID's contents
-        int count = 0;
-        for (int i = 0; i < personID.length(); ++i) {
-            // Check if first two chars are digits
-            if (i < 2 && !Character.isDigit(personID.charAt(i))) {
-                // If first two are not digits, fails
-                return false;
-                // NOTE: I asked a tutor about whitespaces and he told me to assume that there
-                // will be none
-            } else if (!Character.isLetterOrDigit(personID.charAt(i))) {
-                // Counts number of special characters (#$@%! etc.)
-                count += 1;
-            }
-        }
-
-        // Checks that there is at least 2 special characters
-        if (count < 2) {
+    public boolean addPerson(String ID, String first, String last, String address, String birthdate) {
+        // Condition 1.0: ID checking
+        if (!checkID(ID)) {
             return false;
         }
 
@@ -59,42 +30,22 @@ public class Person {
             return false;
         }
 
-        // Condition 3.0: Parses birthdate and checks if it follows the pattern
-        try {
-            LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        } catch (DateTimeParseException e) {
+        // Condition 3.0: Birthday checking
+        if (!checkBirthdate(birthdate)) {
             return false;
         }
 
-        // Writes details if true
+        // If all cases are met, add the person
+        this.personID = ID;
+        this.firstName = first;
+        this.lastName = last;
+        this.address = address;
+        this.birthdate = birthdate;
+
+        // Writes details into a text file called Details.txt
         writeDetails();
 
         // Returns true if all conditions are met
-        return true;
-    }
-
-    // Address checking function
-    public boolean checkAddress(String loc) {
-        String[] addressSplit = loc.split("\\|");
-
-        // If not length 5, then it is not in the correct format
-        if (addressSplit.length != 5) {
-            return false;
-        }
-
-        // Check if Street number is an int
-        try {
-            Integer.parseInt(addressSplit[0]);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        // If the state is not Victoria or the Country is not Australia, fails the
-        // check.
-        if (!addressSplit[3].equals("Victoria") || !addressSplit[4].equals("Australia")) {
-            return false;
-        }
-
         return true;
     }
 
@@ -120,12 +71,12 @@ public class Person {
 
         // Condition 1: Changing address
         try {
-            // Gets the period between them
-            Period period = Period.between(parsedBirthday, LocalDate.now());
+            // Gets the period between representing age
+            int age = Period.between(parsedBirthday, LocalDate.now()).getYears();
 
             // Checks if person is above 18
-            if (period.getYears() < 18) {
-                System.out.println("Cannot change address (Under 18)");
+            if (age < 18) {
+                // System.out.println("Cannot change address (Under 18)");
                 return false;
             }
 
@@ -141,6 +92,9 @@ public class Person {
             return false;
         }
 
+        // Condition 3:
+
+
         // Any details changed will be written here
         writeDetails();
 
@@ -149,6 +103,73 @@ public class Person {
 
     public boolean addDemeritPoints() {
         // Todo:
+        return true;
+    }
+
+    // HELPERS
+    
+    // Address checking function
+    public boolean checkAddress(String loc) {
+        String[] addressSplit = loc.split("\\|");
+
+        // If not length 5, then it is not in the correct format
+        if (addressSplit.length != 5) {
+            return false;
+        }
+
+        // Check if Street number is an int
+        try {
+            Integer.parseInt(addressSplit[0]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        // If the state is not Victoria or the Country is not Australia, fails the
+        // check.
+        if (!addressSplit[3].equals("Victoria") || !addressSplit[4].equals("Australia")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean checkID(String ID) {
+        // Checks if Exactly 10 characters long
+        if (ID.length() != 10) {
+            return false;
+        }
+
+        // Checking person ID's contents
+        int count = 0;
+        for (int i = 0; i < ID.length(); ++i) {
+            // Check if first two chars are digits
+            if (i < 2 && !Character.isDigit(ID.charAt(i))) {
+                // If first two are not digits, fails
+                return false;
+                // NOTE: I asked a tutor about whitespaces and he told me to assume that there
+                // will be none
+            } else if (!Character.isLetterOrDigit(ID.charAt(i))) {
+                // Counts number of special characters (#$@%! etc.)
+                count += 1;
+            }
+        }
+
+        // Checks that there is at least 2 special characters
+        if (count < 2) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean checkBirthdate(String date) {
+        //Parses birthdate and checks if it follows the pattern
+        try {
+            LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+
         return true;
     }
 
