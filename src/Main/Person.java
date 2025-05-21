@@ -1,3 +1,5 @@
+package src.Main;
+
 import java.util.HashMap;
 import java.util.Date;
 import java.time.LocalDate;
@@ -16,7 +18,7 @@ public class Person {
     private LocalDate parsedBirthday, newParsedBirthday;
     // Assignment says to use date, but i think it would be better to use
     // localdate
-    private HashMap<LocalDate, Integer> demeritPoints =  new HashMap<>();
+    private HashMap<LocalDate, Integer> demeritPoints = new HashMap<>();
     public boolean isSuspended = false;
 
     public boolean addPerson(String ID, String first, String last, String address, String birthdate) {
@@ -49,7 +51,8 @@ public class Person {
         return true;
     }
 
-    public boolean updatePersonalDetails(String newID, String newFirst, String newLast, String newAddress, String newBirthday) {
+    public boolean updatePersonalDetails(String newID, String newFirst, String newLast, String newAddress,
+            String newBirthday) {
         // Condition 2: Changing birthdate (comes first due to its nature)
         // Parse both both new and old birthdays and returns false if either fail
         try {
@@ -69,7 +72,7 @@ public class Person {
             // Returns now since only birthdate can be changed once
             return true;
         }
-        
+
         // Condition 1: Changing address
         try {
             // Gets the period between representing age
@@ -88,13 +91,14 @@ public class Person {
                 System.out.println("Address is not in the right format!");
                 return false;
             }
-        // Birthdate given is invalid so return false
+            // Birthdate given is invalid so return false
         } catch (DateTimeParseException e) {
             System.out.println("Birthdate is invalid!");
             return false;
         }
 
-        // Condition 3: Changes ID if the ID meets the previous requirements and the first digit is even
+        // Condition 3: Changes ID if the ID meets the previous requirements and the
+        // first digit is even
         if (checkID(newID) && Character.getNumericValue(newID.charAt(0)) % 2 != 0) {
             // Successfully updates personID
             this.personID = newID;
@@ -141,7 +145,7 @@ public class Person {
     }
 
     // HELPERS METHODS
-    
+
     // Address checking function
     public boolean checkAddress(String loc) {
         String[] addressSplit = loc.split("\\|");
@@ -205,7 +209,7 @@ public class Person {
     }
 
     public boolean checkDate(String date) {
-        //Parses birthdate and checks if it follows the pattern
+        // Parses birthdate and checks if it follows the pattern
         try {
             LocalDate.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
         } catch (DateTimeParseException e) {
@@ -231,7 +235,7 @@ public class Person {
         }
     }
 
-    public boolean countDemerits (int limit) {
+    public boolean countDemerits(int limit) {
         // Adds up demerit points
         int counter = 0;
         LocalDate currentDate = LocalDate.now();
