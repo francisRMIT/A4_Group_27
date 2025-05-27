@@ -1,9 +1,9 @@
-package Main.java;
+package test.java;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import Main.java.Person;
+import main.java.Person;
 
 public class UnitTest {
     Person p1 = new Person();
