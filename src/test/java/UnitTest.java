@@ -1,8 +1,9 @@
-package src.Test;
-
-import src.Main.Person;
+package src.test.java;
 
 import org.junit.jupiter.api.Test;
+
+import src.main.java.Person;
+
 import static org.junit.jupiter.api.Assertions;
 
 public class UnitTest {
