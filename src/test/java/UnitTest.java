@@ -11,7 +11,7 @@ public class UnitTest {
     @Test
     void testUnit() {
         assertEquals(true,
-                p1.addPerson("56s_ad&fAB", "John", "Doe", "32|Highland Street|Melbourne|Victoria|Australia",
+                p1.addPerson("56s_ad&12fAB", "John", "Doe", "32|Highland Street|Melbourne|Victoria|Australia",
                         "27-02-2005"));
     }
 
