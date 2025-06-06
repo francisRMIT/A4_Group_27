@@ -7,17 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.*;
 
-import main.java.Person;
-
-/**
- * Unit tests for Person.addPerson(...), Person.updatePersonalDetails(...),
- * and Person.addDemeritPoints(...).
- *
- * Each @Test below corresponds to one of the 15 test cases in Activity 1.1.1:
- * - TC 1.1.1-A through 1.1.1-E : addPerson(...)
- * - TC 1.1.1-F through 1.1.1-J : updatePersonalDetails(...)
- * - TC 1.1.1-K through 1.1.1-O : addDemeritPoints(...)
- */
 class UnitTest {
 
     private static final String DETAILS_FILE = "Details.txt";

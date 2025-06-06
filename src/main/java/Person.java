@@ -9,131 +9,135 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 
+/**
+ * Person.java
+ *
+ * Implements:
+ * - addPerson(...)
+ * - updatePersonalDetails(...)
+ * - addDemeritPoints(...)
+ *
+ * The only change from the previous version is in addDemeritPoints(...) and
+ * countDemerits(...):
+ * now we sum prior offenses in the TWO‐YEAR window _relative to the offense
+ * date being added_,
+ * rather than comparing everything to LocalDate.now().
+ */
 public class Person {
 
-    // These fields back the unit tests exactly:
     public String personID;
     private String firstName;
     private String lastName;
     private String address;
     private String birthdate; // stored as "dd-MM-yyyy"
     private LocalDate parsedBirthday; // parse and cache at addPerson time
+
+    // Map of offenseDate → points
     private HashMap<LocalDate, Integer> demeritPoints = new HashMap<>();
     public boolean isSuspended = false;
 
     private static final String DETAILS_FILE = "Details.txt";
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
+    /**
+     * addPerson(...) returns true if and only if:
+     * 1) checkID(ID) == true
+     * 2) checkAddress(address) == true
+     * 3) checkDate(birthdate) == true
+     *
+     * On success, it caches parsedBirthday and writes a five‐line Details.txt.
+     */
     public boolean addPerson(String ID, String first, String last,
             String address, String birthdate) {
-        // 1) Validate ID
         if (!checkID(ID)) {
             return false;
         }
-        // 2) Validate address
         if (!checkAddress(address)) {
             return false;
         }
-        // 3) Validate birthdate format
         if (!checkDate(birthdate)) {
             return false;
         }
 
-        // All checks passed → save raw fields
         this.personID = ID;
         this.firstName = first;
         this.lastName = last;
         this.address = address;
         this.birthdate = birthdate;
 
-        // *** Parse and cache the birthdate so addDemeritPoints() will never NPE ***
         try {
             this.parsedBirthday = LocalDate.parse(birthdate, DATE_FMT);
         } catch (DateTimeParseException e) {
-            // Should not happen because checkDate(...) succeeded; but guard anyway:
+            // Should not happen if checkDate(...) passed, but just in case:
             return false;
         }
 
-        // Write out Details.txt
         writeDetails();
         return true;
     }
 
     /**
-     * updatePersonalDetails(...) returns true if and only if the requested update
-     * obeys all of these rules:
+     * updatePersonalDetails(...) enforces these rules:
      *
-     * 1) If the caller is trying to change birthdate (oldBirth != newBirth),
-     * then NO OTHER field may change. If any other field changed at the same
-     * time, return false. If only birthdate changed (and nothing else),
-     * write the new birthdate and return true.
+     * 1) If birthdate changes, no other field may change. Otherwise fail.
+     * If only birthdate changed, update it (and parsedBirthday) and write the file
+     * → return true.
      *
-     * 2) If birthdate is unchanged, proceed to check address-change:
+     * 2) If birthdate is unchanged, check address-change:
      * - If newAddress != oldAddress and age < 18 → return false.
-     * - If newAddress != oldAddress and age >= 18 → validate newAddress by
+     * - Else if newAddress != oldAddress and age ≥ 18, validate via
      * checkAddress(...).
-     * If checkAddress fails, return false; otherwise update address.
      *
-     * 3) If birthdate and address are unchanged, check ID-change:
-     * - If newID != oldID, you are trying to change ID. That is allowed only if
-     * the **old** ID’s first digit was odd. If oldID.charAt(0) is an even digit,
-     * return false. If oldID’s first digit was odd, then validate newID via
-     * checkID(newID) AND also the **new** ID’s first digit must itself be odd.
-     * If validation fails, return false. Otherwise update ID.
+     * 3) If address is unchanged (or just updated), check ID-change:
+     * - If newID != oldID, allowed only if oldID.charAt(0) is odd.
+     * Then newID must pass checkID(...) and newID.charAt(0) must also be odd.
      *
-     * 4) If we have arrived here (birthdate==oldBirth, newAddress==oldAddress or
-     * was updated, and either ID==oldID or was validly changed),
-     * update firstName and lastName unconditionally (no further rules).
+     * 4) Finally, update firstName/lastName unconditionally, rewrite file, return
+     * true.
      *
-     * 5) If any parsing error (invalid format) happens when checking dates,
-     * return false.
-     *
-     * Finally, rewrite Details.txt and return true if all rules passed.
+     * 5) Any parse error on newBirthday → return false immediately.
      */
     public boolean updatePersonalDetails(String newID,
             String newFirst,
             String newLast,
             String newAddress,
             String newBirthday) {
-        // 1) Parse old and new birthdates
-        LocalDate oldBD;
-        LocalDate newBD;
+        // 1) Parse old vs. new birthdates
+        LocalDate oldBD, newBD;
         try {
             oldBD = LocalDate.parse(this.birthdate, DATE_FMT);
             newBD = LocalDate.parse(newBirthday, DATE_FMT);
         } catch (DateTimeParseException e) {
-            // Wrong date format for newBirthday → fail
+            // Wrong date format for newBirthday
             System.out.println("Birthdate is invalid!");
             return false;
         }
 
-        // 1a) If the birthdate is changing at all, ensure no other field changes
+        // 1a) If birthdate changed at all, no other field may change
         if (!oldBD.equals(newBD)) {
             boolean onlyBirthdayChanged = newID.equals(this.personID)
                     && newFirst.equals(this.firstName)
                     && newLast.equals(this.lastName)
                     && newAddress.equals(this.address);
             if (!onlyBirthdayChanged) {
-                // They tried to change birthdate plus at least one other field → fail
                 System.out.println("Cannot change birthdate plus another field!");
                 return false;
             }
-            // Only the birthdate changed; update it and succeed
+            // Only birthdate changed → update and return
             this.birthdate = newBirthday;
             this.parsedBirthday = newBD;
             writeDetails();
             return true;
         }
 
-        // 2) Birthdate is unchanged → check address-change
+        // 2) Birthdate unchanged → check address‐change
         int age = Period.between(this.parsedBirthday, LocalDate.now()).getYears();
         if (!newAddress.equals(this.address)) {
-            // They want to change address → allowed only if age >= 18
+            // Change address is allowed only if age ≥ 18
             if (age < 18) {
                 System.out.println("Cannot change address! (Under 18)");
                 return false;
             }
-            // Over 18: validate newAddress format
             if (!checkAddress(newAddress)) {
                 System.out.println("Address is not in the right format!");
                 return false;
@@ -141,17 +145,14 @@ public class Person {
             this.address = newAddress;
         }
 
-        // 3) Check ID-change rule
+        // 3) Check ID‐change rule
         if (!newID.equals(this.personID)) {
-            // They want to change the ID. The old ID’s first digit must be odd.
             char oldFirstDigit = this.personID.charAt(0);
             if (Character.getNumericValue(oldFirstDigit) % 2 == 0) {
-                // old ID started with an even digit → cannot change ID at all
                 System.out.println("Cannot change ID if old ID’s first digit is even!");
                 return false;
             }
-            // Old first digit was odd, so we may attempt to change ID.
-            // But newID must itself pass checkID(...) AND start with an odd digit.
+            // Old first digit was odd → now validate newID
             if (!checkID(newID) ||
                     Character.getNumericValue(newID.charAt(0)) % 2 == 0) {
                 System.out.println("New ID is invalid or does not start with odd digit!");
@@ -160,11 +161,10 @@ public class Person {
             this.personID = newID;
         }
 
-        // 4) Update firstName and lastName unconditionally
+        // 4) Update first/last name unconditionally
         this.firstName = newFirst;
         this.lastName = newLast;
 
-        // 5) Rewrite Details.txt and return
         writeDetails();
         return true;
     }
@@ -172,20 +172,20 @@ public class Person {
     /**
      * addDemeritPoints(...) returns "Success" or "Failure" according to:
      *
-     * 1) If offenseDate is not parseable as "dd-MM-yyyy" → return "Failure".
-     * 2) If points <= 0 or points > 6 → return "Failure".
-     * 3) Otherwise, insert (offenseDate→points) into the demeritPoints map.
+     * 1) Parse offenseDate (dd-MM-yyyy). If parse fails → return "Failure".
+     * 2) If points < 1 or points > 6 → return "Failure".
+     * 3) Add (offenseDate → points) into the map.
      *
-     * 4) Recompute total points in the last two years (from now back). If
-     * age < 21, threshold=6; else threshold=12. If the sum > threshold,
-     * set isSuspended=true; otherwise isSuspended=false.
+     * 4) Recompute total points for all offenses whose date ≥ (offenseDate minus 2
+     * years).
+     * If age (as of offenseDate) < 21, threshold=6; else threshold=12.
+     * If sum > threshold → isSuspended = true; else false.
      *
-     * Always return "Success" once the date & point bounds check pass,
-     * even if that new offense causes a suspension. Return "Failure" on any
-     * parsing or range‐violation error.
+     * Always return "Success" if the date‐and‐points checks pass, even if
+     * suspension flips to true.
      */
     public String addDemeritPoints(String offenseDate, int points) {
-        // 1) Check offenseDate format
+        // 1) Parse offenseDate
         LocalDate offenseLD;
         try {
             offenseLD = LocalDate.parse(offenseDate, DATE_FMT);
@@ -196,45 +196,43 @@ public class Person {
         if (points < 1 || points > 6) {
             return "Failure";
         }
-        // 3) We know parsedBirthday is non‐null because addPerson always set it
-        int age = Period.between(this.parsedBirthday, LocalDate.now()).getYears();
 
-        // 4) Insert into the map
+        // 3) Compute age _as of that offense date_
+        int ageAtOffense = Period.between(this.parsedBirthday, offenseLD).getYears();
+
+        // 4) Insert this offense into the map
         demeritPoints.put(offenseLD, points);
 
-        // 5) Count points in the last 2 years
-        int threshold = (age < 21) ? 6 : 12;
-        boolean nowSuspended = countDemerits(threshold);
+        // 5) Recompute total points within two years _relative to offenseLD_
+        int threshold = (ageAtOffense < 21) ? 6 : 12;
+        boolean nowSuspended = countDemerits(offenseLD, threshold);
         this.isSuspended = nowSuspended;
 
         return "Success";
     }
 
-    // ────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────
     // H E L P E R M E T H O D S
-    // ────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────
 
     /**
      * checkID(...) returns true only if:
      * - length == 10
      * - first two chars are digits
-     * - at least two chars in the entire string are non‐alphanumeric
-     * - the last two characters (indexes 8 and 9) are uppercase letters A–Z
-     *
-     * Otherwise it returns false. (Prints a System.out message for debugging.)
+     * - at least two chars in the string are non‐alphanumeric
+     * - last two chars (indexes 8 and 9) are uppercase A–Z
      */
     public boolean checkID(String ID) {
-        // length must be exactly 10
         if (ID == null || ID.length() != 10) {
             System.out.println("ID is not 10 characters long!");
             return false;
         }
-        // first two chars must be digits
+        // first two must be digits
         if (!Character.isDigit(ID.charAt(0)) || !Character.isDigit(ID.charAt(1))) {
             System.out.println("First two digits are not ints!");
             return false;
         }
-        // count non‐alphanumeric chars => must be ≥ 2
+        // count non‐alphanumeric
         int specialCount = 0;
         for (int i = 0; i < 10; i++) {
             char c = ID.charAt(i);
@@ -246,7 +244,7 @@ public class Person {
             System.out.println("There are fewer than 2 special characters!");
             return false;
         }
-        // last two chars (positions 8 and 9) must be uppercase A–Z
+        // last two chars must be uppercase A–Z
         char c8 = ID.charAt(8);
         char c9 = ID.charAt(9);
         if (!(c8 >= 'A' && c8 <= 'Z') || !(c9 >= 'A' && c9 <= 'Z')) {
@@ -258,10 +256,9 @@ public class Person {
 
     /**
      * checkAddress(...) returns true only if:
-     * - After splitting by "\\|", there are exactly 5 parts:
-     * [0] streetNumber, [1] streetName, [2] city, [3] state, [4] country
-     * - state.equals("Victoria")
-     * - country.equals("Australia")
+     * - address.split("\\|") has exactly 5 parts
+     * - parts[3].equals("Victoria")
+     * - parts[4].equals("Australia")
      */
     public boolean checkAddress(String address) {
         if (address == null) {
@@ -283,10 +280,8 @@ public class Person {
     }
 
     /**
-     * checkDate(...) returns true only if:
-     * - The string can be parsed via LocalDate.parse(..., DATE_FMT)
-     * - The formatter DATE_FMT = "dd-MM-yyyy" is used, so "15-11-1990" is valid,
-     * but "1990-11-15" or "2024/01/01" or "32-13-2024" will throw ParseException.
+     * checkDate(...) returns true only if the string can be parsed via
+     * LocalDate.parse(..., DateTimeFormatter.ofPattern("dd-MM-yyyy")).
      */
     public boolean checkDate(String date) {
         if (date == null) {
@@ -303,17 +298,13 @@ public class Person {
     }
 
     /**
-     * writeDetails() overwrites “Details.txt” in the current working directory.
-     * The file always contains exactly five lines (no extra blank lines):
+     * writeDetails() overwrites “Details.txt” with exactly five lines:
      *
      * ID: <personID>
      * First Name: <firstName>
      * Last Name: <lastName>
      * Address: <address>
      * Birthdate: <birthdate>
-     *
-     * Any IOException is propagated upward (the unit tests assume writing
-     * succeeds).
      */
     private void writeDetails() {
         try {
@@ -325,42 +316,27 @@ public class Person {
             writer.write("Birthdate: " + this.birthdate + "\n");
             writer.close();
         } catch (IOException e) {
-            // In practice, UnitTest never expects an IOException once inputs are valid,
-            // so we can wrap or rethrow as unchecked. But for simplicity, we just print:
             e.printStackTrace();
         }
     }
 
     /**
-     * countDemerits(int threshold):
-     * 1) Iterates over all offenses in demeritPoints (LocalDate → int points).
-     * 2) Sums only those offenses whose date is within 2 years of today.
-     * 3) If the sum > threshold, return true (suspended); else false.
+     * countDemerits(referenceDate, threshold):
+     * Sum up all offenses whose date is ≥ (referenceDate minus 2 years).
+     * If sum > threshold, return true (suspended); else return false.
+     *
+     * We do an inclusive check: any offenseDate d satisfying
+     * d.isAfter(referenceDate.minusYears(2)) ||
+     * d.equals(referenceDate.minusYears(2))
+     * is counted.
      */
-    private boolean countDemerits(int threshold) {
-        LocalDate today = LocalDate.now();
+    private boolean countDemerits(LocalDate referenceDate, int threshold) {
+        LocalDate windowStart = referenceDate.minusYears(2);
         int sum = 0;
-        for (LocalDate ld : demeritPoints.keySet()) {
-            // Calculate difference in years
-            Period period = Period.between(ld, today);
-            int years = period.getYears();
-            if (years < 2 || (years == 2 && (period.getMonths() < 0 || period.getDays() < 0))) {
-                // If offense date is strictly less than 2 years ago (or exactly 2 years minus
-                // some days),
-                // we count it. In practice, Period.between(...).getYears() < 2 is enough,
-                // because two years
-                // exactly would have getYears()==2, getMonths()==0, getDays()==0, which is
-                // outside the 24‐month window.
-                // So we require years < 2.
-                if (period.getYears() == 2) {
-                    // when exactly 2 years, months==0 && days==0 → that offense is exactly 2 years
-                    // old,
-                    // which the spec says “within the last two years” means strictly < 24 months,
-                    // so we must exclude year==2, month==0, day==0. We handle this by requiring
-                    // years < 2.
-                    continue;
-                }
-                sum += demeritPoints.get(ld);
+        for (LocalDate d : demeritPoints.keySet()) {
+            // include if d ≥ windowStart
+            if (!d.isBefore(windowStart)) {
+                sum += demeritPoints.get(d);
             }
         }
         return (sum > threshold);
