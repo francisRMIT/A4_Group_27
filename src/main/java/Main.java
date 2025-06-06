@@ -1,5 +1,3 @@
-package main.java;
-
 public class Main {
     public static void main(String[] args) {
         // Just run main to check if the function works for now
