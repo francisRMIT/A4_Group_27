@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.*;
 
+import main.java.Person;
+
 /**
  * Unit tests for Person.addPerson(...), Person.updatePersonalDetails(...),
  * and Person.addDemeritPoints(...).
